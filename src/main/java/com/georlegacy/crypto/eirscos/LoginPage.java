@@ -2,8 +2,6 @@ package com.georlegacy.crypto.eirscos;
 
 import com.georlegacy.crypto.eirscos.util.APIUtil;
 import com.georlegacy.crypto.eirscos.util.ParseUtil;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -22,6 +20,8 @@ import javafx.stage.Stage;
 import java.util.Map;
 
 public class LoginPage {
+
+    private Map<String, String> keys;
 
     BorderPane mainPane;
 
@@ -71,6 +71,24 @@ public class LoginPage {
 
         translator.setTop(decoded);
 
+        VBox encoded = new VBox();
+        encoded.setAlignment(Pos.TOP_LEFT);
+        encoded.setSpacing(5);
+        encoded.setMinHeight(250);
+        encoded.setPadding(new Insets(20, 70, 40, 70));
+
+        TextField encodedField = new TextField();
+        encodedField.setMaxSize(250, 30);
+        encodedField.setMinSize(250, 30);
+
+        Label encodedHeader  = new Label();
+        encodedHeader.setText("Eirscos Version 1a");
+        encodedHeader.setStyle("-fx-text-fill: #bcbcbc");
+        encodedHeader.setFont(Font.font(encodedHeader.getFont().getFamily(), FontWeight.BOLD, 20));
+
+        encoded.getChildren().add(encodedHeader);
+        encoded.getChildren().add(encodedField);
+
         HBox buttons = new HBox();
         buttons.setAlignment(Pos.CENTER);
         buttons.setSpacing(20);
@@ -81,6 +99,20 @@ public class LoginPage {
         translateDown.setText("▼");
         translateDown.setStyle("-fx-text-fill: #000000");
         translateDown.setFont(Font.font(translateDown.getFont().getFamily(), 18));
+        translateDown.setOnAction((event -> {
+            String english = decodedField.getText();
+
+            StringBuilder eirscos = new StringBuilder();
+            for (char ch : english.toLowerCase().toCharArray()) {
+                if (this.keys.containsKey(String.valueOf(ch))) {
+                    eirscos.append(this.keys.get(String.valueOf(ch)));
+                } else {
+                    eirscos.append(String.valueOf(ch));
+                }
+            }
+
+            encodedField.setText(eirscos.toString());
+        }));
 
         Label translateLabel = new Label();
         translateLabel.setText("Translate");
@@ -91,30 +123,32 @@ public class LoginPage {
         translateUp.setText("▲");
         translateUp.setStyle("-fx-text-fill: #000000");
         translateUp.setFont(Font.font(translateUp.getFont().getFamily(), 18));
+        translateUp.setOnAction((event -> {
+            String eirscos = encodedField.getText();
+
+            StringBuilder english = new StringBuilder();
+            for (char ch : eirscos.toLowerCase().toCharArray()) {
+                if (this.keys.containsValue(String.valueOf(ch))) {
+                    String toAppend = null;
+                    for (Map.Entry<String, String> candidate : this.keys.entrySet()) {
+                        if (String.valueOf(ch).equals(candidate.getValue().toLowerCase())) {
+                            toAppend = candidate.getKey();
+                        }
+                    }
+                    english.append(toAppend == null ? String.valueOf(ch) : toAppend);
+                } else {
+                    english.append(String.valueOf(ch));
+                }
+            }
+
+            decodedField.setText(english.toString());
+        }));
 
         buttons.getChildren().add(translateDown);
         buttons.getChildren().add(translateLabel);
         buttons.getChildren().add(translateUp);
 
         translator.setCenter(buttons);
-
-        VBox encoded = new VBox();
-        encoded.setAlignment(Pos.TOP_LEFT);
-        encoded.setSpacing(5);
-        encoded.setMinHeight(250);
-        encoded.setPadding(new Insets(20, 70, 40, 70));
-
-        Label encodedHeader  = new Label();
-        encodedHeader.setText("Eirscos Version 1a");
-        encodedHeader.setStyle("-fx-text-fill: #bcbcbc");
-        encodedHeader.setFont(Font.font(encodedHeader.getFont().getFamily(), FontWeight.BOLD, 20));
-
-        TextField encodedField = new TextField();
-        encodedField.setMaxSize(250, 30);
-        encodedField.setMinSize(250, 30);
-
-        encoded.getChildren().add(encodedHeader);
-        encoded.getChildren().add(encodedField);
 
         translator.setBottom(encoded);
 
@@ -179,7 +213,7 @@ public class LoginPage {
         proceedButton.setText("Proceed");
         proceedButton.setFont(Font.font(proceedButton.getFont().getFamily(), FontWeight.BOLD, 18));
         proceedButton.setOnAction(event -> {
-            Map<String, String> keys = ParseUtil.jsonToMap(APIUtil.getKey(secretBox.getText()));
+            keys = ParseUtil.jsonToMap(APIUtil.getKey(secretBox.getText()));
             if (keys == null) {
                 primaryStage.setScene(getFailPage(primaryStage));
             } else{
@@ -252,7 +286,7 @@ public class LoginPage {
         proceedButton.setText("Proceed");
         proceedButton.setFont(Font.font(proceedButton.getFont().getFamily(), FontWeight.BOLD, 18));
         proceedButton.setOnAction(event -> {
-            Map<String, String> keys = ParseUtil.jsonToMap(APIUtil.getKey(secretBox.getText()));
+            keys = ParseUtil.jsonToMap(APIUtil.getKey(secretBox.getText()));
             if (keys == null) {
                 primaryStage.setScene(getFailPage(primaryStage));
             } else{
